@@ -9,10 +9,10 @@
 3. Connection Flow
 4. Security Model
 
-- [Assets](./assets/)
-- [Database Schemas](./database/)
-- [Roadmap](./roadmap/)
-- [Specifications](./spesification/)
+- [Assets](./assets/readme.md)
+- [Database Schemas](./database/readme.md)
+- [Roadmap](./roadmap/readme.md)
+- [Specifications](./spesification/readme.md)
 
 ---
 
