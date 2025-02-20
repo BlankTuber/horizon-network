@@ -6,9 +6,13 @@
 
 1. Project Overview
 2. System Architecture
-3. Component Specifications
-4. Connection Flow
-5. Security Model
+3. Connection Flow
+4. Security Model
+
+- [Assets](./assets/)
+- [Database Schemas](./database/)
+- [Roadmap](./roadmap/)
+- [Specifications](./spesification/)
 
 ---
 
