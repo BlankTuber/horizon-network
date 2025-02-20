@@ -131,5 +131,3 @@
 - Keypair encryption for all communications
 - Enforce communication policies
 - Report security violations
-
----
