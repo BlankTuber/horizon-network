@@ -3,6 +3,7 @@
 ---
 
 ## 📑 **Table of Contents**
+
 1. Project Overview
 2. System Architecture
 3. Component Specifications
@@ -16,11 +17,13 @@
 ## 🚀 **Project Overview**
 
 Horizon is a secure peer-to-peer network gateway with three primary components:
+
 - A central broker that manages server registration and client authentication
 - Servers that provide network services including VPN functionality and LAN emulation
 - Client applications that establish direct connections to servers
 
 The system enables:
+
 - P2P client-server connections
 - Network functionality (VPN, LAN emulation for various applications)
 - Secure authentication through personal keys
@@ -34,6 +37,7 @@ The system enables:
 ### Core Components
 
 #### 🖥️ **Server Component**
+
 - **Language**: Rust
   - `tokio` (async runtime)
   - `quinn` (QUIC protocol implementation)
@@ -47,6 +51,7 @@ The system enables:
   - Secure update process
 
 #### 🔄 **Broker Component**
+
 - **Language**: Go
   - **Gin** (HTTP/REST API framework)
   - **libSQL** (SQLite-compatible database with better concurrency)
@@ -61,6 +66,7 @@ The system enables:
   - Server update delivery
 
 #### 📱 **Client Component**
+
 - **Language**: Rust
   - `quinn` (QUIC client implementation)
   - `tauri` (cross-platform UI framework)
@@ -81,6 +87,7 @@ The system enables:
 ### 🖥️ **Server Specifications**
 
 #### Network Services
+
 - **VPN Capabilities**:
   - Encrypted tunnel creation
   - Traffic routing
@@ -94,6 +101,7 @@ The system enables:
   - UDP broadcast/multicast forwarding
 
 #### Broker Communication
+
 - Report version, location, and capabilities during registration
 - Accept verification challenges
 - Submit periodic heartbeats
@@ -101,6 +109,7 @@ The system enables:
 - Receive and verify updates from broker
 
 #### Process Monitor
+
 - Independent watchdog process
 - Automatic server process restart on failure
 - Resource usage monitoring
@@ -108,18 +117,21 @@ The system enables:
 - Startup failure detection
 
 #### Client Connectivity
+
 - P2P connection establishment
 - Network service provisioning
 - Connection state management
 - Graceful disconnection handling
 
 #### Server Identity
+
 - Identity verification
 - Hardware fingerprinting
 - Location-based verification
 - Network identity verification
 
 #### Update Mechanism
+
 - Receive updates from broker
 - Verify update authenticity with keypair verification
 - Apply updates
@@ -128,6 +140,7 @@ The system enables:
 ### 🔄 **Broker Specifications**
 
 #### Server Management
+
 - Validate servers through verification challenges
 - Track server availability and location
 - Record server capabilities
@@ -135,6 +148,7 @@ The system enables:
 - Notice major server irregularities
 
 #### Authentication System
+
 - Validate server registration
 - Authenticate clients via personal keys
 - Associate keys with user identities
@@ -143,12 +157,14 @@ The system enables:
 - Revoke compromised keys
 
 #### Connection Orchestration
+
 - Record connection start/end times
 - Track current connections
 - Handle server unavailability
 - Verify connection security
 
 #### Administrative Interface
+
 - Key management dashboard with user info
 - Server monitoring with location data
 - Connection tracking
@@ -157,12 +173,14 @@ The system enables:
 ### 📱 **Client Specifications**
 
 #### Installation
+
 - One-click installer
 - Automatic dependency resolution
 - Secure initial setup
 - Default security settings configuration
 
 #### User Interface
+
 - Clean, modern design
 - Real-time connection status
 - Server location map/visualization
@@ -171,23 +189,27 @@ The system enables:
 - Accessibility features
 
 #### Authentication
+
 - Store personal key in system secure storage
 - Authenticate with broker
 - Handle key updates when needed
 - Associate with user identity
 
 #### Server Selection
+
 - Discover available servers via broker
 - Visual server location map
 - Performance metrics for selection
 - Connect to selected server
 
 #### Network Integration
+
 - Utilize server VPN capabilities
 - Access virtual LAN functionality
 - Maintain connection across network changes
 
 #### Security Enforcement
+
 - Prevent reverse connections from servers
 - Keypair encryption for all communications
 - Enforce communication policies
@@ -198,6 +220,7 @@ The system enables:
 ## 🔄 **Connection Flow**
 
 ### Server Registration Process
+
 1. **Initial Setup**:
    - Administrator generates registration key in broker
    - Server operator inputs key during setup
@@ -221,6 +244,7 @@ The system enables:
    - Process monitor ensures server stays active
 
 ### Client Connection Process
+
 1. **Authentication**:
    - Client provides personal key to broker
    - Broker validates key and identifies user
@@ -252,6 +276,7 @@ The system enables:
    - Client UI updates to show disconnected state
 
 ### Broker Unavailability Handling
+
 1. **Server Behavior**:
    - If serving client: continue operation normally
    - If idle: enter standby mode with reconnection attempts
@@ -263,6 +288,7 @@ The system enables:
    - Cannot establish new connections during broker unavailability
 
 ### Key Management
+
 1. **Regular Updates**:
    - System generates new keys when needed
    - Client receives key update notification
@@ -281,6 +307,7 @@ The system enables:
 ### Core Tables
 
 #### `servers` Table
+
 ```sql
 CREATE TABLE servers (
     server_id TEXT PRIMARY KEY,
@@ -300,6 +327,7 @@ CREATE TABLE servers (
 ```
 
 #### `server_capabilities` Table
+
 ```sql
 CREATE TABLE server_capabilities (
     capability_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -311,6 +339,7 @@ CREATE TABLE server_capabilities (
 ```
 
 #### `personal_keys` Table
+
 ```sql
 CREATE TABLE personal_keys (
     key_id TEXT PRIMARY KEY,
@@ -327,6 +356,7 @@ CREATE TABLE personal_keys (
 ```
 
 #### `devices` Table
+
 ```sql
 CREATE TABLE devices (
     device_id TEXT PRIMARY KEY,
@@ -341,6 +371,7 @@ CREATE TABLE devices (
 ```
 
 #### `connections` Table
+
 ```sql
 CREATE TABLE connections (
     connection_id TEXT PRIMARY KEY,
@@ -357,6 +388,7 @@ CREATE TABLE connections (
 ```
 
 #### `heartbeats` Table
+
 ```sql
 CREATE TABLE heartbeats (
     heartbeat_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -370,6 +402,7 @@ CREATE TABLE heartbeats (
 ```
 
 #### `security_events` Table
+
 ```sql
 CREATE TABLE security_events (
     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -385,6 +418,7 @@ CREATE TABLE security_events (
 ```
 
 #### `admins` Table
+
 ```sql
 CREATE TABLE admins (
     admin_id TEXT PRIMARY KEY,
@@ -427,6 +461,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
 ## 🔒 **Security Model**
 
 ### Server Validation
+
 - **Initial Registration**:
   - Registration key required for first connection
   - Key becomes bound to server's public key
@@ -445,7 +480,8 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
   - Location consistency checking
   - Connection pattern monitoring
 
-### Authentication System
+### Auth System
+
 - **Personal Keys**:
   - Strong random keys
   - Stored as salted hashes
@@ -464,6 +500,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
   - Suspicious activity detection
 
 ### Secure Communication
+
 - **Transport Security**:
   - QUIC protocol with TLS 1.3
   - Certificate verification
@@ -481,6 +518,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
   - User identity protection
 
 ### Operational Security
+
 - **Broker Protection**:
   - Input validation
   - Administrative access controls
@@ -512,6 +550,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
 ## Phase 1: Foundation and Core Architecture
 
 ### 🛠️ 1.1 Project Setup
+
 - Set up dev environments (Rust, Go)
 - Initialize Git repos with proper branching structure
 - Install necessary libraries (tokio, quinn, gin)
@@ -519,6 +558,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
 - Create libSQL schema definitions and test connections
 
 ### 🧱 1.2 Core Infrastructure Development
+
 - Implement network communication libraries
   - QUIC protocol integration in Rust
   - REST endpoints in Go
@@ -528,6 +568,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
 - Test network connectivity between components
 
 ### 🔄 1.3 Broker Core Development
+
 - Implement broker service with HTTP endpoints
   - `/register` - Server registration
   - `/auth` - Client authentication
@@ -542,6 +583,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
 ## Phase 2: Security Framework
 
 ### 🔐 2.1 Authentication System
+
 - Develop personal key generation with user association
   - Implement key derivation function (Argon2id)
   - Create salted hash storage
@@ -554,6 +596,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
 - Test authentication with multiple concurrent users
 
 ### 🛡️ 2.2 Server Verification System
+
 - Develop registration key generation
   - Implement cryptographically secure PRNG
   - Create key expiration logic
@@ -572,6 +615,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
   - Failure notification system
 
 ### 🔒 2.3 Secure Communication
+
 - Implement TLS 1.3 with QUIC
   - Certificate generation and validation
   - Session resumption handling
@@ -591,6 +635,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
 ## Phase 3: Network Services
 
 ### 🌐 3.1 VPN Capabilities
+
 - Implement encrypted tunnel creation
   - TUN/TAP interface management
   - Packet encapsulation
@@ -609,6 +654,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
   - ICMP response
 
 ### 🖧 3.2 LAN Emulation
+
 - Implement virtual network adapter
   - Interface creation
   - MAC address assignment
@@ -634,6 +680,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
 ## Phase 4: Client and Management Interface
 
 ### 📱 4.1 Client Application
+
 - Develop Tauri-based UI
   - Modern, responsive design
   - Dark/light theme support
@@ -658,6 +705,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
   - Secure initial setup
 
 ### 🎛️ 4.2 Administrative Interface
+
 - Develop key management with user identity
   - Key generation
   - User association
@@ -682,6 +730,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
 ## Phase 5: Testing and Deployment
 
 ### 🧪 5.1 Testing
+
 - Implement unit tests
   - Component-level testing
   - Mocked dependencies
@@ -701,6 +750,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
   - Compliance verification
 
 ### 🚀 5.2 Deployment Preparation
+
 - Create installation packages
   - Windows installer (.msi)
   - macOS package (.pkg)
@@ -723,6 +773,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
 ## Phase 6: User Experience and Refinement
 
 ### 🔄 6.1 Feedback Loop
+
 - Set up feedback channels
   - In-app feedback
   - Issue tracker
@@ -737,6 +788,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
   - Fix prioritization
 
 ### 🎨 6.2 UX Improvements
+
 - Refine client interface based on feedback
   - Workflow optimization
   - Visual enhancements
@@ -751,6 +803,7 @@ CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
   - Network optimization
 
 ### 📦 6.3 Packaging and Distribution
+
 - Build zero-config installer
   - Silent installation option
   - Default security settings
