@@ -1,4 +1,4 @@
-# 🌐 **Horizon - P2P Network Gateway: Project Plan**
+# 🌐 **Horizon - P2P Network Gateway**
 
 ---
 
@@ -23,9 +23,9 @@ Horizon is a secure peer-to-peer network gateway with three primary components:
 The system enables:
 - P2P client-server connections
 - Network functionality (VPN, LAN emulation for various applications)
-- Secure authentication through personal keys with regular rotation
+- Secure authentication through personal keys
 - Operation with intermittent broker availability
-- Server integrity verification and update mechanisms
+- Server verification and update mechanisms
 
 ---
 
@@ -42,25 +42,23 @@ The system enables:
   - Network traffic tunneling
   - Virtual LAN emulation
   - Geolocation services
-  - Auto-reporting of capabilities to broker
-  - Multiple identity verification mechanisms
+  - Server identity verification
+  - Automatic process monitoring and self-healing
   - Secure update process
 
 #### 🔄 **Broker Component**
 - **Language**: Go
   - **Gin** (HTTP/REST API framework)
-  - **PostgreSQL** (relational database)
+  - **libSQL** (SQLite-compatible database with better concurrency)
 - **Key Functionality**:
   - Server validation and registration
   - Client authentication via personal keys
   - Connection tracking
   - Server discovery for clients
-  - Public IP determination from incoming connections
-  - Server verification through challenge-response
-  - Administrative interface for key management
-  - Security monitoring and alerting
-  - Server update delivery and verification
-  - Key rotation management
+  - Geolocation tracking and display
+  - Basic administrative interface
+  - Security monitoring
+  - Server update delivery
 
 #### 📱 **Client Component**
 - **Language**: Rust
@@ -69,12 +67,12 @@ The system enables:
   - `keyring` (secure key storage)
 - **Key Functionality**:
   - Personal key management
-  - Server discovery via broker
+  - Server discovery via broker with location info
   - Direct P2P connection to servers
-  - Multiple device support for same user (allow user to export their key)
   - Network service utilization
-  - Key rotation handling
-  - Secure communication enforcement
+  - Modern, intuitive UI with real-time status
+  - One-click installation process
+  - Secure communication with keypair encryption
 
 ---
 
@@ -85,7 +83,7 @@ The system enables:
 #### Network Services
 - **VPN Capabilities**:
   - Encrypted tunnel creation
-  - Traffic routing between networks
+  - Traffic routing
   - IP masking for privacy/geo-bypassing
   - Network protocol handling
 
@@ -93,119 +91,107 @@ The system enables:
   - Virtual network adapter creation
   - Local network presence simulation
   - Network discovery broadcasts
-  - Network address translation
   - UDP broadcast/multicast forwarding
 
 #### Broker Communication
-- Report version and capabilities during registration
-- Accept challenge-response verification
-- Submit periodic heartbeats with status
-- Handle registration without manual configuration
-- Maintain NAT traversal channels for broker commands
-- Accept and process commands from broker when idle
+- Report version, location, and capabilities during registration
+- Accept verification challenges
+- Submit periodic heartbeats
+- Handle registration with minimal configuration
 - Receive and verify updates from broker
-- Verify that all client connection attempts passes through broker
+
+#### Process Monitor
+- Independent watchdog process
+- Automatic server process restart on failure
+- Resource usage monitoring
+- Crash reporting
+- Startup failure detection
 
 #### Client Connectivity
 - P2P connection establishment
 - Network service provisioning
 - Connection state management
 - Graceful disconnection handling
-- Security boundary enforcement
 
 #### Server Identity
-- Multiple identity verification factors
+- Identity verification
 - Hardware fingerprinting
-- Cryptographic attestation
+- Location-based verification
 - Network identity verification
-- Manual verification for significant changes (hardware changes, location changes, etc.)
-- Protection against spoofing/hijacking attempts
 
 #### Update Mechanism
 - Receive updates from broker
-- Verify update authenticity
-- Apply updates securely
+- Verify update authenticity with keypair verification
+- Apply updates
 - Report update status
-- Rollback capability
 
 ### 🔄 **Broker Specifications**
 
 #### Server Management
-- Extract public IP from incoming connections to use for futher information gathering
 - Validate servers through verification challenges
-- Track server availability status
-- Record server capabilities automatically
-- Store NAT traversal information
-- Maintain command channel
-- Flag unresponsive servers for investigation
+- Track server availability and location
+- Record server capabilities
 - Deliver and verify server updates
-- Monitor for unauthorized server changes
-- Track multiple server identity factors
-- Notice server irregularities and flag them
+- Notice major server irregularities
 
 #### Authentication System
-- Validate server registration credentials
+- Validate server registration
 - Authenticate clients via personal keys
-- Support multi-device usage per key
-- Prevent unauthorized server registration
-- Handle regular key rotation
+- Associate keys with user identities
+- Handle key rotation when needed
 - Process manual key updates
 - Revoke compromised keys
-- Enforce key security policies
-- Notice user irregularities and flag them
 
 #### Connection Orchestration
 - Record connection start/end times
 - Track current connections
 - Handle server unavailability
-- Manage connection termination for new requests
-- Verify all client traffic passes through broker
-- Handle connections so that a user can only have one connection at a time
+- Verify connection security
 
 #### Administrative Interface
-- Key management dashboard
-- Server monitoring system
+- Key management dashboard with user info
+- Server monitoring with location data
 - Connection tracking
-- Security alert management
-- User management
-- System performance monitoring
-- Audit logging
-- Update management
+- Security alert display
 
 ### 📱 **Client Specifications**
+
+#### Installation
+- One-click installer
+- Automatic dependency resolution
+- Secure initial setup
+- Default security settings configuration
+
+#### User Interface
+- Clean, modern design
+- Real-time connection status
+- Server location map/visualization
+- Bandwidth and performance metrics
+- Dark/light theme
+- Accessibility features
 
 #### Authentication
 - Store personal key in system secure storage
 - Authenticate with broker
-- Support usage across multiple devices
-- Handle key revocation
-- Process regular key updates
-- Allow manual key updates
-- Secure key transition
-- Secure key transmission
+- Handle key updates when needed
+- Associate with user identity
 
 #### Server Selection
 - Discover available servers via broker
-- Verify broker-mediated connections
+- Visual server location map
+- Performance metrics for selection
+- Connect to selected server
 
 #### Network Integration
 - Utilize server VPN capabilities
 - Access virtual LAN functionality
 - Maintain connection across network changes
-- Enforce security boundaries
-
-#### Multi-Device Support
-- Use same personal key across devices
-- Synchronize settings when possible
-- Manage device-specific configurations
 
 #### Security Enforcement
 - Prevent reverse connections from servers
-- Detect malicious payloads
+- Keypair encryption for all communications
 - Enforce communication policies
 - Report security violations
-- Verify traffic routing
-- Secure traffic transmission
 
 ---
 
@@ -213,728 +199,227 @@ The system enables:
 
 ### Server Registration Process
 1. **Initial Setup**:
-   - Administrator generates one-time registration key in broker
-   - Administrator provides key to server operator
-   - Server operator inputs key during initial setup
+   - Administrator generates registration key in broker
+   - Server operator inputs key during setup
    - Server generates encryption keypair
-   - Server collects hardware/network identity information
+   - Server collects location and hardware identity information
 
-2. **First-Time Registration**:
+2. **Registration**:
    - Server connects to broker registration endpoint
-   - Server provides one-time registration key, public key, and identity factors
+   - Server provides registration key, public key, and location data
    - Broker validates registration key
    - Broker extracts public IP from connection
-     - Broker uses public IP to generate other information about server
-   - Broker binds registration key to server's multiple identity factors
-   - Broker generates verification secret for future authentication
+   - Broker determines geolocation information
+   - Broker generates verification secret
    - Broker registers server and returns verification secret
-   - Server stores verification secret securely
 
-3. **Ongoing Communication & Verification**:
+3. **Ongoing Communication**:
    - Server sends heartbeat every 30 seconds
-   - Server includes HMAC signature using verification secret
-   - Server reports capabilities, version, and identity information
-   - Broker validates HMAC signature and identity factors
-   - Broker periodically issues new challenges during heartbeats
-   - Server responds to challenges using verification secret
-   - Broker tracks last-seen and last-verified timestamps
-   - Broker updates server status
-   - Broker periodically updates verification secret, and server recieves and updates this
+   - Server includes signature using keypair encryption
+   - Server reports capabilities, location, and version
+   - Broker validates signature
+   - Process monitor ensures server stays active
 
 ### Client Connection Process
 1. **Authentication**:
    - Client provides personal key to broker
-   - Broker validates key and checks rotation status
-   - Broker recognizes device if previously used
-   - Broker registers new device if first connection
+   - Broker validates key and identifies user
+   - Broker registers device if needed
 
 2. **Server Discovery**:
    - Client requests available server list
-   - Broker returns servers with capabilities
+   - Broker returns servers with capabilities and locations
+   - Client displays server locations visually
    - Client selects appropriate server
-   - Client requests connection permission
 
 3. **Connection Establishment**:
    - Broker records connection intent
-   - Broker notifies server of pending connection
    - Client initiates direct P2P connection to server
    - Server accepts connection if authorized
    - Broker updates connection status
-   - Server verifies all traffic routes through broker
+   - Client UI shows real-time connection status
 
 4. **Active Connection**:
    - Server provides network services
    - Client uses VPN/LAN functionality
-   - Both maintain security boundaries
-   - Broker periodically verifies connection status
+   - Client displays performance metrics
+   - Both maintain security with keypair encryption
 
 5. **Connection Termination**:
-   - User initiated disconnection | Broker termination request | Connection timeout
    - Graceful disconnection process
    - Server returns to available status
    - Broker records connection end
+   - Client UI updates to show disconnected state
 
 ### Broker Unavailability Handling
 1. **Server Behavior**:
    - If serving client: continue operation normally
-   - If idle: enter standby mode with periodic broker reconnection attempts
-   - Handle broker unavailability gracefully without crashing
-   - Store last known good state for recovery
-   - Resume normal operation when broker returns online
+   - If idle: enter standby mode with reconnection attempts
+   - Process monitor ensures stability during broker outage
 
 2. **Client Behavior**:
    - Maintain current connection if active
+   - Display appropriate status in UI
    - Cannot establish new connections during broker unavailability
-   - Continue broker reconnection attempts
 
-### Server Change Detection
-1. **Change Monitoring**:
-   - Broker tracks multiple server identity factors
-   - Server reports identity information with each heartbeat
-   - Significant changes trigger verification requirement
-
-2. **Verification Process**:
-   - Broker flags server as requiring verification
-   - Administrator reviews change details
-   - Manual verification process initiated
-   - Server remains unavailable until verified
-   - New verification credentials issued after approval
-
-### Key Rotation System
+### Key Management
 1. **Regular Updates**:
-   - System generates new keys on schedule
+   - System generates new keys when needed
    - Client receives key update notification
-   - Automatic transition without manual input
-   - Old key remains valid during transition period
-   - Client confirms receipt of new key
+   - Automatic transition to new key
 
 2. **Manual Updates**:
    - Administrator initiates key revocation
-   - All devices using key receive notification
-   - Previous key immediately invalidated
+   - Previous key invalidated
+   - User receives notification with instructions
    - User must manually input new key
-   - Broker records key transition
-
-### Multi-Device Management
-1. **Same-User Authentication**:
-   - All devices use identical personal key
-   - Broker identifies devices by hardware fingerprint
-   - Connection history tracked per device
-
-2. **Concurrent Connection Handling**:
-   - Broker detects connection from new device
-   - If existing connection present:
-     - Prompt user for action
-     - Terminate previous connection if confirmed
-     - Establish new connection
-     - Log device transition
-
-### Server Update Process
-1. **Update Preparation**:
-   - Administrator uploads update to broker
-   - Broker verifies update package
-   - Update assigned version number and verification hash
-
-2. **Update Delivery**:
-   - Broker notifies eligible servers
-   - Servers request update package
-   - Broker delivers update securely
-   - Server verifies package authenticity
-   - Server applies update during maintenance window
-   - Server reports update status to broker
 
 ---
 
-## 📋 **Database Schemas**
+## 📋 **Database Schema**
 
-### Table of Contents
-1. [Core Schemas](#core-schemas)
-2. [Authentication & Identity Schemas](#authentication--identity-schemas)
-3. [Connection & Monitoring Schemas](#connection--monitoring-schemas)
-4. [Security & Auditing Schemas](#security--auditing-schemas)
-5. [Administrative Schemas](#administrative-schemas)
-6. [Schema Relationships](#schema-relationships)
-7. [Indexes & Performance Considerations](#indexes--performance-considerations)
-
-### Core Schemas
+### Core Tables
 
 #### `servers` Table
 ```sql
 CREATE TABLE servers (
-    server_id UUID PRIMARY KEY,
-    hostname VARCHAR(255) NOT NULL,
-    public_ip INET NOT NULL,
+    server_id TEXT PRIMARY KEY,
+    hostname TEXT NOT NULL,
+    public_ip TEXT NOT NULL,
     public_key TEXT NOT NULL,
     verification_secret TEXT NOT NULL,
-    version VARCHAR(50) NOT NULL,
-    registration_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    last_heartbeat TIMESTAMP WITH TIME ZONE,
-    last_verified TIMESTAMP WITH TIME ZONE,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending',
-    available BOOLEAN DEFAULT FALSE,
-    requires_verification BOOLEAN DEFAULT FALSE,
-    verification_reason TEXT,
-    maintenance_mode BOOLEAN DEFAULT FALSE,
-    decommissioned BOOLEAN DEFAULT FALSE,
-    decommission_reason TEXT,
-    decommission_date TIMESTAMP WITH TIME ZONE,
-    created_by UUID REFERENCES admins(admin_id),
-    CONSTRAINT status_check CHECK (status IN ('pending', 'active', 'unavailable', 'maintenance', 'decommissioned', 'compromised'))
+    version TEXT NOT NULL,
+    location TEXT, -- Country/region
+    latitude REAL,
+    longitude REAL,
+    registration_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_heartbeat TIMESTAMP,
+    status TEXT NOT NULL DEFAULT 'pending',
+    available BOOLEAN DEFAULT FALSE
 );
 ```
 
 #### `server_capabilities` Table
 ```sql
 CREATE TABLE server_capabilities (
-    capability_id SERIAL PRIMARY KEY,
-    server_id UUID REFERENCES servers(server_id) ON DELETE CASCADE,
-    capability_type VARCHAR(50) NOT NULL,
-    capability_details JSONB NOT NULL,
-    enabled BOOLEAN DEFAULT TRUE,
-    added_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    CONSTRAINT capability_types CHECK (capability_type IN ('vpn', 'lan_emulation', 'geo_location', 'traffic_routing', 'nat_traversal'))
+    capability_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    server_id TEXT REFERENCES servers(server_id) ON DELETE CASCADE,
+    capability_type TEXT NOT NULL,
+    capability_details TEXT NOT NULL,
+    enabled BOOLEAN DEFAULT TRUE
 );
 ```
-
-#### `server_identity_factors` Table
-```sql
-CREATE TABLE server_identity_factors (
-    factor_id SERIAL PRIMARY KEY,
-    server_id UUID REFERENCES servers(server_id) ON DELETE CASCADE,
-    factor_type VARCHAR(50) NOT NULL,
-    factor_value TEXT NOT NULL,
-    first_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    confidence NUMERIC(5,2) DEFAULT 100.0,
-    is_current BOOLEAN DEFAULT TRUE,
-    CONSTRAINT factor_types CHECK (factor_type IN ('hardware_fingerprint', 'network_signature', 'geolocation', 'cryptographic_attestation', 'runtime_environment'))
-);
-```
-
-#### `server_updates` Table
-```sql
-CREATE TABLE server_updates (
-    update_id SERIAL PRIMARY KEY,
-    version VARCHAR(50) NOT NULL,
-    update_package_path TEXT NOT NULL,
-    package_hash TEXT NOT NULL,
-    signature TEXT NOT NULL,
-    release_notes TEXT,
-    required BOOLEAN DEFAULT FALSE,
-    release_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    expiration_date TIMESTAMP WITH TIME ZONE,
-    created_by UUID REFERENCES admins(admin_id)
-);
-```
-
-#### `server_update_status` Table
-```sql
-CREATE TABLE server_update_status (
-    status_id SERIAL PRIMARY KEY,
-    server_id UUID REFERENCES servers(server_id) ON DELETE CASCADE,
-    update_id INTEGER REFERENCES server_updates(update_id) ON DELETE CASCADE,
-    status VARCHAR(20) DEFAULT 'pending',
-    notification_sent BOOLEAN DEFAULT FALSE,
-    notification_date TIMESTAMP WITH TIME ZONE,
-    download_started TIMESTAMP WITH TIME ZONE,
-    download_completed TIMESTAMP WITH TIME ZONE,
-    verification_status VARCHAR(20),
-    installation_started TIMESTAMP WITH TIME ZONE,
-    installation_completed TIMESTAMP WITH TIME ZONE,
-    current_version_before VARCHAR(50),
-    rollback_status VARCHAR(20),
-    failure_reason TEXT,
-    CONSTRAINT update_status_check CHECK (status IN ('pending', 'notified', 'downloading', 'verifying', 'installing', 'completed', 'failed', 'rolled_back'))
-);
-```
-
-### Authentication & Identity Schemas
 
 #### `personal_keys` Table
 ```sql
 CREATE TABLE personal_keys (
-    key_id UUID PRIMARY KEY,
+    key_id TEXT PRIMARY KEY,
+    user_name TEXT NOT NULL,
+    user_email TEXT,
     key_hash TEXT NOT NULL,
     key_salt TEXT NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'active',
-    creation_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    activation_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    expiration_date TIMESTAMP WITH TIME ZONE,
-    last_rotation_date TIMESTAMP WITH TIME ZONE,
-    next_rotation_date TIMESTAMP WITH TIME ZONE,
-    rotation_notifications_sent BOOLEAN DEFAULT FALSE,
-    manual_rotation_required BOOLEAN DEFAULT FALSE,
-    deactivation_date TIMESTAMP WITH TIME ZONE,
-    deactivation_reason TEXT,
-    created_by UUID REFERENCES admins(admin_id),
-    notes TEXT,
-    CONSTRAINT key_status_check CHECK (status IN ('pending', 'active', 'rotating', 'deactivated', 'compromised', 'expired'))
-);
-```
-
-#### `key_rotation_history` Table
-```sql
-CREATE TABLE key_rotation_history (
-    rotation_id SERIAL PRIMARY KEY,
-    previous_key_id UUID REFERENCES personal_keys(key_id),
-    new_key_id UUID REFERENCES personal_keys(key_id),
-    rotation_type VARCHAR(20) NOT NULL,
-    rotation_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    initiated_by UUID REFERENCES admins(admin_id),
-    reason TEXT,
-    CONSTRAINT rotation_type_check CHECK (rotation_type IN ('scheduled', 'manual', 'emergency', 'compromised'))
+    status TEXT NOT NULL DEFAULT 'active',
+    creation_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expiration_date TIMESTAMP,
+    last_rotation_date TIMESTAMP,
+    notes TEXT
 );
 ```
 
 #### `devices` Table
 ```sql
 CREATE TABLE devices (
-    device_id UUID PRIMARY KEY,
-    key_id UUID REFERENCES personal_keys(key_id),
+    device_id TEXT PRIMARY KEY,
+    key_id TEXT REFERENCES personal_keys(key_id),
     hardware_fingerprint TEXT NOT NULL,
-    device_name VARCHAR(255),
-    platform VARCHAR(50) NOT NULL,
-    os_version VARCHAR(50),
-    app_version VARCHAR(50) NOT NULL,
-    first_seen TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    last_seen TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    status VARCHAR(20) NOT NULL DEFAULT 'active',
-    suspicious BOOLEAN DEFAULT FALSE,
-    suspicious_reason TEXT,
-    blocked BOOLEAN DEFAULT FALSE,
-    blocked_date TIMESTAMP WITH TIME ZONE,
-    blocked_reason TEXT,
-    CONSTRAINT device_status_check CHECK (status IN ('active', 'inactive', 'suspicious', 'blocked'))
+    device_name TEXT,
+    platform TEXT NOT NULL,
+    first_seen TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_seen TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status TEXT NOT NULL DEFAULT 'active'
 );
 ```
-
-#### `registration_keys` Table
-```sql
-CREATE TABLE registration_keys (
-    registration_key_id SERIAL PRIMARY KEY,
-    registration_key TEXT NOT NULL UNIQUE,
-    status VARCHAR(20) NOT NULL DEFAULT 'unused',
-    creation_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    expiration_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    used_date TIMESTAMP WITH TIME ZONE,
-    used_by_server_id UUID REFERENCES servers(server_id),
-    created_by UUID REFERENCES admins(admin_id),
-    notes TEXT,
-    CONSTRAINT reg_key_status_check CHECK (status IN ('unused', 'used', 'expired', 'revoked'))
-);
-```
-
-#### `admins` Table
-```sql
-CREATE TABLE admins (
-    admin_id UUID PRIMARY KEY,
-    username VARCHAR(100) NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    full_name VARCHAR(255),
-    role VARCHAR(50) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'active',
-    last_login TIMESTAMP WITH TIME ZONE,
-    failed_login_attempts INTEGER DEFAULT 0,
-    lockout_until TIMESTAMP WITH TIME ZONE,
-    created_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    created_by UUID REFERENCES admins(admin_id),
-    last_password_change TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    require_password_change BOOLEAN DEFAULT FALSE,
-    mfa_enabled BOOLEAN DEFAULT TRUE,
-    mfa_secret TEXT,
-    CONSTRAINT admin_status_check CHECK (status IN ('active', 'inactive', 'locked', 'suspended'))
-);
-```
-
-### Connection & Monitoring Schemas
 
 #### `connections` Table
 ```sql
 CREATE TABLE connections (
-    connection_id UUID PRIMARY KEY,
-    server_id UUID REFERENCES servers(server_id),
-    device_id UUID REFERENCES devices(device_id),
-    key_id UUID REFERENCES personal_keys(key_id),
-    connection_start TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    connection_end TIMESTAMP WITH TIME ZONE,
-    status VARCHAR(20) NOT NULL DEFAULT 'active',
-    connection_type VARCHAR(50) NOT NULL,
-    client_ip INET NOT NULL,
-    allocated_resources JSONB,
-    termination_reason TEXT,
-    initiated_by VARCHAR(20),
-    connection_details JSONB,
-    CONSTRAINT conn_status_check CHECK (status IN ('active', 'terminated', 'failed', 'timeout', 'interrupted')),
-    CONSTRAINT conn_type_check CHECK (connection_type IN ('vpn', 'lan_emulation', 'both')),
-    CONSTRAINT init_check CHECK (initiated_by IN ('client', 'server', 'broker', 'system', 'admin'))
-);
-```
-
-#### `connection_metrics` Table
-```sql
-CREATE TABLE connection_metrics (
-    metric_id SERIAL PRIMARY KEY,
-    connection_id UUID REFERENCES connections(connection_id) ON DELETE CASCADE,
-    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    bytes_sent BIGINT NOT NULL DEFAULT 0,
-    bytes_received BIGINT NOT NULL DEFAULT 0,
-    latency_ms INTEGER,
-    packet_loss_percent NUMERIC(5,2),
-    active_services JSONB,
-    resource_usage JSONB
+    connection_id TEXT PRIMARY KEY,
+    server_id TEXT REFERENCES servers(server_id),
+    device_id TEXT REFERENCES devices(device_id),
+    key_id TEXT REFERENCES personal_keys(key_id),
+    user_name TEXT,
+    connection_start TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    connection_end TIMESTAMP,
+    status TEXT NOT NULL DEFAULT 'active',
+    connection_type TEXT NOT NULL,
+    client_ip TEXT NOT NULL
 );
 ```
 
 #### `heartbeats` Table
 ```sql
 CREATE TABLE heartbeats (
-    heartbeat_id SERIAL PRIMARY KEY,
-    server_id UUID REFERENCES servers(server_id) ON DELETE CASCADE,
-    received_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    server_time TIMESTAMP WITH TIME ZONE,
+    heartbeat_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    server_id TEXT REFERENCES servers(server_id) ON DELETE CASCADE,
+    received_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     signature_valid BOOLEAN NOT NULL,
-    server_status JSONB NOT NULL,
     active_connections INTEGER NOT NULL DEFAULT 0,
-    system_metrics JSONB,
-    verification_response TEXT,
-    verification_status BOOLEAN,
-    identity_verified BOOLEAN DEFAULT TRUE
+    current_location TEXT,
+    system_metrics TEXT -- JSON with CPU, memory, network usage
 );
 ```
-
-#### `service_status` Table
-```sql
-CREATE TABLE service_status (
-    status_id SERIAL PRIMARY KEY,
-    service_name VARCHAR(100) NOT NULL,
-    component VARCHAR(20) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'operational',
-    last_check TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    last_operational TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    incident_details TEXT,
-    affected_components JSONB,
-    next_check TIMESTAMP WITH TIME ZONE,
-    CONSTRAINT component_check CHECK (component IN ('broker', 'server', 'client', 'system')),
-    CONSTRAINT status_check CHECK (status IN ('operational', 'degraded', 'outage', 'maintenance'))
-);
-```
-
-### Security & Auditing Schemas
 
 #### `security_events` Table
 ```sql
 CREATE TABLE security_events (
-    event_id SERIAL PRIMARY KEY,
-    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    event_type VARCHAR(100) NOT NULL,
-    severity VARCHAR(20) NOT NULL,
-    component VARCHAR(20) NOT NULL,
-    source_id UUID,
-    source_ip INET,
+    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    event_type TEXT NOT NULL,
+    severity TEXT NOT NULL,
+    component TEXT NOT NULL,
+    source_id TEXT,
     description TEXT NOT NULL,
-    raw_data JSONB,
     handled BOOLEAN DEFAULT FALSE,
-    handled_by UUID REFERENCES admins(admin_id),
-    handled_at TIMESTAMP WITH TIME ZONE,
-    resolution_notes TEXT,
-    CONSTRAINT severity_check CHECK (severity IN ('info', 'low', 'medium', 'high', 'critical')),
-    CONSTRAINT component_check CHECK (component IN ('broker', 'server', 'client', 'system'))
+    user_name TEXT -- If applicable
 );
 ```
 
-#### `verification_challenges` Table
+#### `admins` Table
 ```sql
-CREATE TABLE verification_challenges (
-    challenge_id SERIAL PRIMARY KEY,
-    server_id UUID REFERENCES servers(server_id) ON DELETE CASCADE,
-    challenge_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    challenge_type VARCHAR(50) NOT NULL,
-    challenge_data TEXT NOT NULL,
-    expected_response TEXT,
-    actual_response TEXT,
-    response_time TIMESTAMP WITH TIME ZONE,
-    verification_success BOOLEAN,
-    attempt_count INTEGER DEFAULT 1,
-    CONSTRAINT challenge_type_check CHECK (challenge_type IN ('hmac', 'public_key', 'identity_verification', 'capability_check', 'behavior_verification'))
+CREATE TABLE admins (
+    admin_id TEXT PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    role TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active',
+    last_login TIMESTAMP
 );
 ```
 
-#### `audit_logs` Table
-```sql
-CREATE TABLE audit_logs (
-    log_id SERIAL PRIMARY KEY,
-    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    admin_id UUID REFERENCES admins(admin_id),
-    action VARCHAR(100) NOT NULL,
-    component VARCHAR(50) NOT NULL,
-    target_id UUID,
-    target_type VARCHAR(50) NOT NULL,
-    previous_state JSONB,
-    new_state JSONB,
-    ip_address INET,
-    user_agent TEXT,
-    success BOOLEAN NOT NULL,
-    notes TEXT
-);
-```
-
-#### `security_policy` Table
-```sql
-CREATE TABLE security_policy (
-    policy_id SERIAL PRIMARY KEY,
-    policy_name VARCHAR(100) NOT NULL UNIQUE,
-    policy_type VARCHAR(50) NOT NULL,
-    settings JSONB NOT NULL,
-    description TEXT,
-    created_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    last_modified TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    modified_by UUID REFERENCES admins(admin_id),
-    active BOOLEAN DEFAULT TRUE,
-    applies_to JSONB NOT NULL,
-    CONSTRAINT policy_type_check CHECK (policy_type IN ('authentication', 'connection', 'key_rotation', 'verification', 'monitoring', 'updates'))
-);
-```
-
-#### `blocked_ips` Table
-```sql
-CREATE TABLE blocked_ips (
-    block_id SERIAL PRIMARY KEY,
-    ip_address INET NOT NULL,
-    ip_range CIDR,
-    reason TEXT NOT NULL,
-    severity VARCHAR(20) NOT NULL,
-    block_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    expiration_date TIMESTAMP WITH TIME ZONE,
-    blocked_by UUID REFERENCES admins(admin_id),
-    block_source VARCHAR(50) NOT NULL,
-    notes TEXT,
-    CONSTRAINT severity_check CHECK (severity IN ('temporary', 'suspicious', 'malicious', 'persistent')),
-    CONSTRAINT source_check CHECK (block_source IN ('manual', 'automatic', 'system', 'threshold'))
-);
-```
-
-#### `anomaly_detection` Table
-```sql
-CREATE TABLE anomaly_detection (
-    anomaly_id SERIAL PRIMARY KEY,
-    detection_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    anomaly_type VARCHAR(100) NOT NULL,
-    component VARCHAR(20) NOT NULL,
-    source_id UUID,
-    confidence_score NUMERIC(5,2) NOT NULL,
-    baseline_data JSONB,
-    anomalous_data JSONB,
-    addressed BOOLEAN DEFAULT FALSE,
-    addressed_by UUID REFERENCES admins(admin_id),
-    addressed_time TIMESTAMP WITH TIME ZONE,
-    resolution_action TEXT,
-    false_positive BOOLEAN DEFAULT FALSE,
-    CONSTRAINT component_check CHECK (component IN ('broker', 'server', 'client', 'connection', 'authentication'))
-);
-```
-
-### Administrative Schemas
-
-#### `system_settings` Table
-```sql
-CREATE TABLE system_settings (
-    setting_id SERIAL PRIMARY KEY,
-    setting_name VARCHAR(100) NOT NULL UNIQUE,
-    setting_value JSONB NOT NULL,
-    description TEXT,
-    editable BOOLEAN DEFAULT TRUE,
-    requires_restart BOOLEAN DEFAULT FALSE,
-    modified_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    modified_by UUID REFERENCES admins(admin_id),
-    category VARCHAR(50) NOT NULL
-);
-```
-
-#### `admin_sessions` Table
-```sql
-CREATE TABLE admin_sessions (
-    session_id UUID PRIMARY KEY,
-    admin_id UUID REFERENCES admins(admin_id) ON DELETE CASCADE,
-    login_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    expiry_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    last_activity TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    ip_address INET NOT NULL,
-    user_agent TEXT NOT NULL,
-    session_token TEXT NOT NULL,
-    active BOOLEAN DEFAULT TRUE,
-    logout_time TIMESTAMP WITH TIME ZONE,
-    logout_reason VARCHAR(50),
-    CONSTRAINT logout_reason_check CHECK (logout_reason IN ('user_initiated', 'expired', 'admin_terminated', 'security_policy', 'session_hijacking_suspected'))
-);
-```
-
-#### `notifications` Table
-```sql
-CREATE TABLE notifications (
-    notification_id SERIAL PRIMARY KEY,
-    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    notification_type VARCHAR(50) NOT NULL,
-    urgency VARCHAR(20) NOT NULL DEFAULT 'normal',
-    target_admin_id UUID REFERENCES admins(admin_id),
-    target_all_admins BOOLEAN DEFAULT FALSE,
-    subject TEXT NOT NULL,
-    content TEXT NOT NULL,
-    related_entity_type VARCHAR(50),
-    related_entity_id UUID,
-    read BOOLEAN DEFAULT FALSE,
-    read_time TIMESTAMP WITH TIME ZONE,
-    expires TIMESTAMP WITH TIME ZONE,
-    action_required BOOLEAN DEFAULT FALSE,
-    action_taken BOOLEAN DEFAULT FALSE,
-    action_details TEXT,
-    CONSTRAINT urgency_check CHECK (urgency IN ('low', 'normal', 'high', 'critical')),
-    CONSTRAINT notification_type_check CHECK (notification_type IN ('security', 'system', 'update', 'maintenance', 'policy', 'user', 'server'))
-);
-```
-
-#### `scheduled_tasks` Table
-```sql
-CREATE TABLE scheduled_tasks (
-    task_id SERIAL PRIMARY KEY,
-    task_name VARCHAR(100) NOT NULL,
-    task_type VARCHAR(50) NOT NULL,
-    schedule JSONB NOT NULL,
-    last_run TIMESTAMP WITH TIME ZONE,
-    next_run TIMESTAMP WITH TIME ZONE,
-    enabled BOOLEAN DEFAULT TRUE,
-    task_parameters JSONB,
-    description TEXT,
-    created_by UUID REFERENCES admins(admin_id),
-    created_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    modified_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    last_status VARCHAR(20),
-    last_output TEXT,
-    retry_count INTEGER DEFAULT 0,
-    max_retries INTEGER DEFAULT 3,
-    CONSTRAINT task_type_check CHECK (task_type IN ('key_rotation', 'maintenance', 'backup', 'cleanup', 'security_scan', 'report_generation', 'server_update'))
-);
-```
-
-#### `reports` Table
-```sql
-CREATE TABLE reports (
-    report_id SERIAL PRIMARY KEY,
-    report_name VARCHAR(100) NOT NULL,
-    report_type VARCHAR(50) NOT NULL,
-    generation_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    parameters JSONB,
-    generated_by UUID REFERENCES admins(admin_id),
-    file_path TEXT,
-    file_size INTEGER,
-    file_hash TEXT,
-    expiry_date TIMESTAMP WITH TIME ZONE,
-    public_access BOOLEAN DEFAULT FALSE,
-    access_token TEXT,
-    description TEXT,
-    CONSTRAINT report_type_check CHECK (report_type IN ('security', 'connection', 'performance', 'audit', 'system_health', 'user_activity', 'server_status'))
-);
-```
-
-### Schema Relationships
-
-The key relationships in this database design include:
-
-1. **Server Identity and Verification**
-   - `servers` ↔ `server_identity_factors` (1:N)
-   - `servers` ↔ `verification_challenges` (1:N)
-   - `servers` ↔ `heartbeats` (1:N)
-   - `servers` ↔ `server_capabilities` (1:N)
-   - `servers` ↔ `server_update_status` (1:N)
-   - `registration_keys` ↔ `servers` (1:1)
-
-2. **Authentication and Access Control**
-   - `personal_keys` ↔ `devices` (1:N)
-   - `personal_keys` ↔ `key_rotation_history` (1:N)
-   - `personal_keys` ↔ `connections` (1:N)
-   - `admins` ↔ `admin_sessions` (1:N)
-   - `admins` ↔ `audit_logs` (1:N)
-
-3. **Connection Management**
-   - `connections` ↔ `servers` (N:1)
-   - `connections` ↔ `devices` (N:1)
-   - `connections` ↔ `connection_metrics` (1:N)
-
-4. **Security and Monitoring**
-   - `security_events` → `servers`, `devices`, `connections` (M:N)
-   - `anomaly_detection` → `servers`, `devices`, `connections` (M:N)
-   - `audit_logs` → multiple entities (polymorphic)
-   - `blocked_ips` with broker monitoring
-
-5. **Administrative Operations**
-   - `admins` ↔ `notifications` (1:N)
-   - `admins` ↔ `scheduled_tasks` (1:N)
-   - `admins` ↔ `reports` (1:N)
-   - `admins` ↔ `server_updates` (1:N)
-
-### Indexes & Performance Considerations
-
-### Critical Indexes
+### Important Indexes
 
 ```sql
 -- Server performance indexes
 CREATE INDEX idx_servers_status ON servers(status);
 CREATE INDEX idx_servers_last_heartbeat ON servers(last_heartbeat);
-CREATE INDEX idx_servers_public_ip ON servers(public_ip);
+CREATE INDEX idx_servers_location ON servers(location);
 
 -- Authentication indexes
 CREATE INDEX idx_personal_keys_status ON personal_keys(status);
-CREATE INDEX idx_personal_keys_expiration ON personal_keys(expiration_date);
+CREATE INDEX idx_personal_keys_user ON personal_keys(user_name);
 CREATE INDEX idx_devices_key_id ON devices(key_id);
-CREATE INDEX idx_devices_hardware_fingerprint ON devices(hardware_fingerprint);
 CREATE INDEX idx_devices_last_seen ON devices(last_seen);
 
 -- Connection tracking indexes
 CREATE INDEX idx_connections_status ON connections(status);
 CREATE INDEX idx_connections_server_id ON connections(server_id);
 CREATE INDEX idx_connections_device_id ON connections(device_id);
-CREATE INDEX idx_connections_key_id ON connections(key_id);
-CREATE INDEX idx_connections_times ON connections(connection_start, connection_end);
+CREATE INDEX idx_connections_user ON connections(user_name);
 
 -- Security monitoring indexes
-CREATE INDEX idx_security_events_severity_time ON security_events(severity, timestamp);
-CREATE INDEX idx_security_events_handled ON security_events(handled);
-CREATE INDEX idx_heartbeats_server_time ON heartbeats(server_id, received_time);
-CREATE INDEX idx_audit_logs_action_time ON audit_logs(action, timestamp);
-CREATE INDEX idx_blocked_ips_address ON blocked_ips(ip_address);
-CREATE INDEX idx_anomaly_detection_unaddressed ON anomaly_detection(addressed, detection_time);
-
--- Administrative indexes
-CREATE INDEX idx_admin_sessions_active ON admin_sessions(admin_id, active);
-CREATE INDEX idx_notifications_unread ON notifications(target_admin_id, read);
-CREATE INDEX idx_scheduled_tasks_next_run ON scheduled_tasks(next_run, enabled);
-```
-
-### Partitioning Strategy
-
-For high-volume tables, consider implementing the following partitioning strategies:
-
-```sql
--- Partitioning heartbeats by month
-CREATE TABLE heartbeats_partition (
-    LIKE heartbeats INCLUDING ALL
-) PARTITION BY RANGE (received_time);
-
--- Create monthly partitions
-CREATE TABLE heartbeats_y2024m01 PARTITION OF heartbeats_partition
-    FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
--- Continue with additional partitions
-
--- Partitioning connection_metrics by server and month
-CREATE TABLE connection_metrics_partition (
-    LIKE connection_metrics INCLUDING ALL
-) PARTITION BY LIST (server_id) PARTITION BY RANGE (timestamp);
-
--- Partitioning audit_logs by quarter
-CREATE TABLE audit_logs_partition (
-    LIKE audit_logs INCLUDING ALL
-) PARTITION BY RANGE (timestamp);
+CREATE INDEX idx_security_events_severity ON security_events(severity);
+CREATE INDEX idx_heartbeats_server_id ON heartbeats(server_id);
 ```
 
 ---
@@ -943,115 +428,82 @@ CREATE TABLE audit_logs_partition (
 
 ### Server Validation
 - **Initial Registration**:
-  - One-time registration key required for first connection
-  - Key distributed securely to authorized server operators
-  - Keys become bound to server's public key after first use
-  - Registration keys expire after successful onboarding
+  - Registration key required for first connection
+  - Key becomes bound to server's public key
+  - Keys expire after successful registration
 
 - **Ongoing Verification**:
-  - Challenge-response verification on each reconnection
-  - Public key continuity verification
+  - Challenge-response verification
+  - Public key verification  
   - Connection origin validation
-  - Periodic re-verification during heartbeats
-  - Multiple identity factors verification
-  - Hardware fingerprint validation
-  - Network characteristic monitoring
-  - Periodic verification secret updates
-
-- **Change Management**:
-  - Significant changes trigger verification requirement
-  - Server flagged as requiring verification
-  - Manual administrator review required
-  - Multiple verification factors checked
-  - Change history maintained
+  - Location verification
+  - Process monitoring for tampering detection
 
 - **Monitoring**:
-  - Behavioral analysis
   - Version verification
   - Capability validation
+  - Location consistency checking
   - Connection pattern monitoring
-  - Traffic pattern analysis
-  - Identity consistency checks
 
 ### Authentication System
 - **Personal Keys**:
-  - 256-bit random keys
+  - Strong random keys
   - Stored as salted hashes
-  - Device-independent usage
+  - Associated with real user identities
   - Manual distribution to users
-  - Regular rotation schedule
   - Manual revocation capability
 
 - **Key Rotation**:
-  - Automatic scheduled rotations
-  - Transparent transition for regular updates
   - Manual revocation capability
-  - Immediate invalidation for security concerns
   - Rotation history tracking
+  - User notification system
 
 - **Device Management**:
   - Hardware fingerprinting
   - Device registration tracking
   - Suspicious activity detection
-  - Multi-device coordination
-  - Device-specific security policies
 
 ### Secure Communication
 - **Transport Security**:
   - QUIC protocol with TLS 1.3
   - Certificate verification
-  - Perfect forward secrecy
   - Connection encryption
-  - Traffic verification
-  - Keypair encryption and decryption
+  - Keypair encryption/decryption for message security
 
 - **Security Boundaries**:
   - Server cannot initiate reverse connections
-  - Payload inspection for malicious content
-  - Traffic routing verification
+  - Traffic verification
   - Communication policy enforcement
-  - Violation reporting and handling
 
 - **Data Protection**:
-  - No traffic content logging
   - Minimal metadata storage
-  - Encrypted database storage
   - Secure key management
+  - User identity protection
 
 ### Operational Security
-- **Broker Hardening**:
-  - Minimal attack surface
-  - Connection rate limiting
+- **Broker Protection**:
   - Input validation
-  - Privilege separation
   - Administrative access controls
   - Audit logging
-  - Intrusion detection
+  - libSQL concurrency benefits for resilience
 
 - **Server Protection**:
-  - Isolated network operation
+  - Process monitor for automatic recovery
   - Minimal persistent storage
   - Limited broker dependency
-  - Secure failure modes
   - Update verification
-  - Rollback capability
-  - Secondary process monitor in case of main process failure
+  - Crash reporting and analysis
 
 - **Client Security**:
   - Secure key storage
   - Connection verification
-  - Application sandboxing
-  - Update verification
   - Traffic validation
-  - Security boundary enforcement
+  - Visual security status indicators
 
 - **Update Security**:
-  - Cryptographically signed updates
+  - Signed updates with keypair verification
   - Package hash verification
-  - Secure delivery channel
   - Integrity checking during installation
-  - Version compatibility validation
-  - Rollback capability for failed updates
 
 ---
 
@@ -1059,290 +511,260 @@ CREATE TABLE audit_logs_partition (
 
 ## Phase 1: Foundation and Core Architecture
 
-### 1.1 Project Setup and Environment Configuration
-- Set up development environments for Rust (Server/Client) and Go (Broker)
-- Establish version control repositories with branching strategy
-- Configure continuous integration pipelines
-- Create development, staging, and production environments
-- Establish coding standards and documentation guidelines
-- Set up project management and issue tracking
+### 🛠️ 1.1 Project Setup
+- Set up dev environments (Rust, Go)
+- Initialize Git repos with proper branching structure
+- Install necessary libraries (tokio, quinn, gin)
+- Configure basic CI pipeline with GitHub Actions
+- Create libSQL schema definitions and test connections
 
-### 1.2 Core Infrastructure Development
-- Implement basic network communication libraries
-- Develop QUIC protocol integration with `quinn` for Rust components
-- Establish Go framework with Gin for Broker REST API
-- Set up PostgreSQL database with initial schema design
-- Implement secure logging mechanisms across all components
-- Create error handling and monitoring foundations
+### 🧱 1.2 Core Infrastructure Development
+- Implement network communication libraries
+  - QUIC protocol integration in Rust
+  - REST endpoints in Go
+- Set up libSQL database with connection pooling
+- Create broker-server communication protocol
+- Implement basic logging and error handling
+- Test network connectivity between components
 
-### 1.3 Broker Core Development
-- Implement basic broker service with HTTP/REST API endpoints
-- Set up database connection and basic CRUD operations
-- Develop server registration endpoint (without verification)
-- Create simple client authentication endpoint (without key rotation)
-- Implement basic connection tracking system
-- Set up administrative interface foundation
+### 🔄 1.3 Broker Core Development
+- Implement broker service with HTTP endpoints
+  - `/register` - Server registration
+  - `/auth` - Client authentication
+  - `/servers` - Server discovery
+  - `/status` - System status
+- Set up database connection with prepared statements
+- Create server registration handler with location detection
+- Implement client authentication with user identity
+- Build connection tracking system
+- Test concurrent request handling with libSQL
 
-### 1.4 Server Core Development
-- Implement basic server daemon in Rust
-- Develop QUIC server implementation
-- Create broker communication module
-- Implement simple registration process
-- Develop basic heartbeat mechanism
-- Set up logging and error handling
+## Phase 2: Security Framework
 
-### 1.5 Client Core Development
-- Create basic client application in Rust
-- Implement QUIC client with `quinn`
-- Develop basic UI using `tauri`
-- Create broker communication module
-- Implement initial authentication flow
-- Set up secure key storage with `keyring`
+### 🔐 2.1 Authentication System
+- Develop personal key generation with user association
+  - Implement key derivation function (Argon2id)
+  - Create salted hash storage
+  - Build user identity management
+- Implement secure key storage
+  - Database encryption for stored keys
+  - Memory protection for keys in use
+- Create key distribution mechanism with user verification
+- Build key validation logic with timing-attack resistance
+- Test authentication with multiple concurrent users
 
-## Phase 2: Security Framework Implementation
+### 🛡️ 2.2 Server Verification System
+- Develop registration key generation
+  - Implement cryptographically secure PRNG
+  - Create key expiration logic
+- Build registration validation pipeline
+  - Key verification
+  - Server identity collection
+  - Location verification
+- Implement challenge-response verification
+  - Create challenge generation
+  - Build response validation
+  - Test replay attack resistance
+- Create process monitor for server self-healing
+  - Independent watchdog process
+  - Health check mechanism
+  - Automatic restart capability
+  - Failure notification system
 
-### 2.1 Authentication System
-- Develop personal key generation system
-- Implement secure key storage in broker database
-- Create key distribution mechanisms
-- Develop salted hash storage system
-- Implement key validation logic
-- Create multi-device support for same key
+### 🔒 2.3 Secure Communication
+- Implement TLS 1.3 with QUIC
+  - Certificate generation and validation
+  - Session resumption handling
+- Develop keypair encryption system
+  - Key exchange protocol
+  - Message encryption/decryption
+  - Forward secrecy implementation
+- Create traffic verification mechanisms
+  - Packet validation
+  - Tamper detection
+  - Replay protection
+- Test against common attack vectors
+  - MitM attacks
+  - Replay attacks
+  - Protocol downgrade attacks
 
-### 2.2 Server Verification System
-- Develop one-time registration key generation
-- Implement registration key validation
-- Create server identity collection mechanisms
-- Develop multiple identity factor verification
-- Implement challenge-response verification system
-- Create verification secret management
+## Phase 3: Network Services
 
-### 2.3 Secure Communication Infrastructure
-- Implement TLS 1.3 with QUIC for all communications
-- Develop certificate verification mechanisms
-- Create perfect forward secrecy implementation
-- Implement connection encryption standards
-- Develop traffic verification mechanisms
-- Create security boundary enforcement
-
-### 2.4 Key Rotation System
-- Implement scheduled key rotation logic
-- Develop transparent key transition process
-- Create manual key revocation capability
-- Implement immediate invalidation mechanisms
-- Develop rotation history tracking
-- Create notification system for key updates
-
-### 2.5 Server Change Detection
-- Implement identity factor monitoring
-- Develop change detection algorithms
-- Create verification requirement flagging
-- Implement administrator review workflow
-- Develop manual verification process
-- Create verification credential reissuance
-
-## Phase 3: Network Services Development
-
-### 3.1 VPN Capabilities
+### 🌐 3.1 VPN Capabilities
 - Implement encrypted tunnel creation
-- Develop traffic routing between networks
+  - TUN/TAP interface management
+  - Packet encapsulation
+  - Route table manipulation
+- Develop traffic routing with location awareness
+  - IP forwarding
+  - NAT traversal
+  - Traffic prioritization
 - Create IP masking functionality
+  - Address translation
+  - Header rewriting
+  - DNS leak prevention
 - Implement network protocol handling
-- Develop VPN configuration management
-- Create connection state management
+  - TCP optimization
+  - UDP forwarding
+  - ICMP response
 
-### 3.2 LAN Emulation
-- Implement virtual network adapter creation
+### 🖧 3.2 LAN Emulation
+- Implement virtual network adapter
+  - Interface creation
+  - MAC address assignment
+  - MTU configuration
 - Develop local network presence simulation
+  - mDNS response
+  - SSDP handling
+  - NetBIOS name service
 - Create network discovery broadcasts
-- Implement network address translation
-- Develop UDP broadcast/multicast forwarding
-- Create LAN service discovery mechanisms
+  - Broadcast forwarding
+  - ARP handling
+  - Service advertisement
+- Implement multicast forwarding
+  - Group management
+  - Packet duplication
+  - TTL handling
+- Test with common LAN applications
+  - File sharing
+  - Network printing
+  - Media streaming
+  - Games with LAN support
 
-### 3.3 Connection Management
-- Implement P2P connection establishment
-- Develop network service provisioning
-- Create connection state management
-- Implement graceful disconnection handling
-- Develop security boundary enforcement
-- Create connection metrics collection
+## Phase 4: Client and Management Interface
 
-### 3.4 Broker Connection Orchestration
-- Implement connection start/end time recording
-- Develop current connection tracking
-- Create server unavailability handling
-- Implement connection termination management
-- Develop traffic verification system
-- Create concurrent connection handling
+### 📱 4.1 Client Application
+- Develop Tauri-based UI
+  - Modern, responsive design
+  - Dark/light theme support
+  - Accessibility features
+  - Server location map visualization
+- Implement authentication flow
+  - Secure key input
+  - User identity display
+  - Multi-device support
+- Create server selection interface
+  - Location-based sorting
+  - Performance metrics
+  - Favorite servers
+- Develop connection management
+  - Status indicators
+  - Real-time metrics
+  - Troubleshooting tools
+- Build one-click installer
+  - Dependency bundling
+  - Auto-configuration
+  - Update mechanism
+  - Secure initial setup
 
-## Phase 4: Administrative and Monitoring Systems
+### 🎛️ 4.2 Administrative Interface
+- Develop key management with user identity
+  - Key generation
+  - User association
+  - Revocation tools
+  - Rotation scheduling
+- Implement server monitoring
+  - Status dashboard
+  - Location tracking
+  - Performance metrics
+  - Health checks
+- Create connection tracking
+  - Active connections
+  - Historical data
+  - User activity
+  - Bandwidth usage
+- Implement security alert system
+  - Real-time notifications
+  - Severity classification
+  - Response actions
+  - Audit logging
 
-### 4.1 Administrative Interface
-- Develop key management dashboard
-- Implement server monitoring system
-- Create connection tracking visualization
-- Develop security alert management
-- Implement user management interface
-- Create system performance monitoring
-- Develop audit logging viewer
-- Implement update management interface
+## Phase 5: Testing and Deployment
 
-### 4.2 Security Monitoring
-- Develop security event detection
-- Implement anomaly detection algorithms
-- Create alert generation system
-- Develop incident response workflow
-- Implement security policy enforcement
-- Create security reporting mechanisms
+### 🧪 5.1 Testing
+- Implement unit tests
+  - Component-level testing
+  - Mocked dependencies
+  - Edge case handling
+- Develop integration testing
+  - Inter-component communication
+  - Database interactions
+  - Authentication flows
+- Create end-to-end test scenarios
+  - Full connection lifecycle
+  - Broker unavailability
+  - Server failover
+- Implement security testing
+  - Penetration testing
+  - Fuzzing
+  - Dependency scanning
+  - Compliance verification
 
-### 4.3 Server Management
-- Implement server status monitoring
-- Develop capability tracking
-- Create NAT traversal management
-- Implement command channel
-- Develop unresponsive server handling
-- Create server irregularity detection
+### 🚀 5.2 Deployment Preparation
+- Create installation packages
+  - Windows installer (.msi)
+  - macOS package (.pkg)
+  - Linux packages (deb, rpm)
+  - Automatic dependency resolution
+- Implement basic backup procedures
+  - Database backup script
+  - Key storage backup
+  - Configuration backup
+- Develop monitoring setup
+  - Health check endpoints
+  - Metrics collection
+  - Alert configuration
+- Prepare user documentation
+  - Installation guide
+  - User manual
+  - Troubleshooting
+  - FAQ
 
-### 4.4 Performance Monitoring
-- Implement system metrics collection
-- Develop performance visualization
-- Create bottleneck detection
-- Implement resource usage tracking
-- Develop capacity planning tools
-- Create performance reporting
+## Phase 6: User Experience and Refinement
 
-## Phase 5: Update and Maintenance Systems
+### 🔄 6.1 Feedback Loop
+- Set up feedback channels
+  - In-app feedback
+  - Issue tracker
+  - User community
+- Implement automated crash reporting
+  - Stack trace collection
+  - Environment details
+  - Frequency analysis
+- Establish bug triage process
+  - Severity classification
+  - Reproduction steps
+  - Fix prioritization
 
-### 5.1 Update Mechanism - Broker
-- Implement update package management
-- Develop update authentication system
-- Create update distribution mechanisms
-- Implement server notification system
-- Develop update status tracking
-- Create rollback management
+### 🎨 6.2 UX Improvements
+- Refine client interface based on feedback
+  - Workflow optimization
+  - Visual enhancements
+  - Performance improvements
+- Add advanced visualizations
+  - Connection quality graphs
+  - Geolocation mapping
+  - Usage statistics
+- Implement guided setup wizard
+  - First-run experience
+  - Configuration assistance
+  - Network optimization
 
-### 5.2 Update Mechanism - Server
-- Implement update package retrieval
-- Develop update verification system
-- Create update application process
-- Implement maintenance window management
-- Develop rollback capability
-- Create update status reporting
-
-### 5.3 Update Mechanism - Client
-- Implement update checking
-- Develop update retrieval system
-- Create update verification process
-- Implement update application
-- Develop rollback capability
-- Create update notification system
-
-### 5.4 Maintenance Management
-- Implement scheduled maintenance system
-- Develop maintenance notification process
-- Create service degradation handling
-- Implement maintenance mode toggling
-- Develop maintenance reporting
-- Create post-maintenance verification
-
-## Phase 6: Advanced Features and Hardening
-
-### 6.1 Broker Failover and High Availability
-- Implement broker clustering
-- Develop leader election mechanism
-- Create state synchronization
-- Implement database replication
-- Develop load balancing
-- Create automatic failover
-
-### 6.2 Broker Unavailability Handling
-- Implement server behavior during broker outage
-- Develop client behavior during broker outage
-- Create last known good state storage
-- Implement reconnection strategies
-- Develop state recovery mechanisms
-- Create degraded mode operation
-
-### 6.3 Security Hardening
-- Implement rate limiting
-- Develop IP blocking mechanisms
-- Create input validation hardening
-- Implement privilege separation
-- Develop intrusion detection integration
-- Create security boundary reinforcement
-
-### 6.4 Performance Optimization
-- Implement database query optimization
-- Develop connection pooling
-- Create caching strategies
-- Implement asynchronous processing
-- Develop background task optimization
-- Create resource utilization balancing
-
-## Phase 7: Testing, Documentation, and Deployment
-
-### 7.1 Comprehensive Testing
-- Implement unit testing for all components
-- Develop integration testing suite
-- Create end-to-end testing scenarios
-- Implement security penetration testing
-- Develop performance stress testing
-- Create usability testing protocols
-
-### 7.2 Documentation
-- Develop administrative documentation
-- Create user manuals
-- Implement API documentation
-- Develop architectural documentation
-- Create troubleshooting guides
-- Implement security documentation
-
-### 7.3 Deployment Preparation
-- Develop deployment automation
-- Create infrastructure as code templates
-- Implement blue-green deployment strategy
-- Develop database migration procedures
-- Create backup and restore procedures
-- Implement monitoring and alerting setup
-
-### 7.4 Initial Deployment
-- Perform controlled production deployment
-- Implement incremental user onboarding
-- Create performance baseline measurements
-- Develop incident response procedures
-- Implement feedback collection mechanisms
-- Create operational monitoring dashboards
-
-## Phase 8: Refinement and Expansion
-
-### 8.1 Feedback Incorporation
-- Analyze user feedback
-- Implement prioritized improvements
-- Create usability enhancements
-- Develop performance optimizations
-- Implement security improvements
-- Create additional documentation
-
-### 8.2 Feature Expansion
-- Implement additional network services
-- Develop enhanced security features
-- Create administrative workflow improvements
-- Implement advanced monitoring capabilities
-- Develop extended reporting features
-- Create integration capabilities with other systems
-
-### 8.3 Scale Optimization
-- Implement horizontal scaling improvements
-- Develop database sharding strategies
-- Create connection load balancing
-- Implement geographic distribution
-- Develop multi-region support
-- Create distributed broker architecture
-
-### 8.4 Long-term Maintenance
-- Establish ongoing maintenance procedures
-- Develop dependency update strategy
-- Create security patching workflow
-- Implement performance tuning cycle
-- Develop technical debt management
-- Create system evolution roadmap
+### 📦 6.3 Packaging and Distribution
+- Build zero-config installer
+  - Silent installation option
+  - Default security settings
+  - Minimal user interaction required
+- Implement auto-update mechanism
+  - Update checking
+  - Delta updates
+  - Verification
+  - Automatic installation
+- Create distribution channels
+  - Direct download
+  - Package repositories
+  - Update server
+- Test deployment across platforms
+  - Windows (10/11)
+  - macOS (Intel/ARM)
+  - Linux (major distros)
