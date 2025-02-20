@@ -50,7 +50,6 @@ The system enables:
 - **Language**: Go
   - **Gin** (HTTP/REST API framework)
   - **PostgreSQL** (relational database)
-  - **Redis** (caching and real-time updates)
 - **Key Functionality**:
   - Server validation and registration
   - Client authentication via personal keys
@@ -1073,7 +1072,6 @@ CREATE TABLE audit_logs_partition (
 - Develop QUIC protocol integration with `quinn` for Rust components
 - Establish Go framework with Gin for Broker REST API
 - Set up PostgreSQL database with initial schema design
-- Configure Redis for caching and real-time updates
 - Implement secure logging mechanisms across all components
 - Create error handling and monitoring foundations
 
