@@ -8,11 +8,11 @@
 2. [System Architecture](#️-system-architecture)
 3. [Connection Flow](#-connection-flow)
 4. [Security Model](#-security-model)
+5. [Development Roadmap](#-development-roadmap)
 
-- [Assets](./assets/assets.md)
-- [Database Schemas](./database/database_schemas.md)
-- [Roadmap](./roadmap/roadmap.md)
-- [Specifications](./specifications/specifications.md)
+- [Database Schema](./database/database_schemas.md)
+- [Component Specifications](./specifications/specifications.md)
+- [Detailed Roadmap](./roadmap/roadmap.md)
 
 ---
 
@@ -26,9 +26,10 @@ Horizon is a secure peer-to-peer network gateway with three primary components:
 
 The system enables:
 
-- P2P client-server connections
+- P2P client-server connections with WebRTC (initial) and optional QUIC (advanced)
 - Network functionality (VPN, LAN emulation for various applications)
 - Secure authentication through personal keys
+- Named server identification and management
 - Operation with intermittent broker availability
 - Server verification and update mechanisms
 
@@ -42,13 +43,14 @@ The system enables:
 
 - **Language**: Rust
   - `tokio` (async runtime)
-  - `quinn` (QUIC protocol implementation)
+  - `webrtc-rs` (WebRTC protocol implementation)
+  - Optional `quinn` (QUIC protocol implementation) in later phases
 - **Key Functionality**:
   - Direct P2P connection with client
   - Network traffic tunneling
   - Virtual LAN emulation
   - Geolocation services
-  - Server identity verification
+  - Server identity verification with friendly naming
   - Automatic process monitoring and self-healing
   - Secure update process
 
@@ -56,75 +58,27 @@ The system enables:
 
 - **Language**: Go
   - **Gin** (HTTP/REST API framework)
-  - **libSQL** (SQLite-compatible database with better concurrency)
+  - **PostgreSQL** (Robust relational database)
 - **Key Functionality**:
-  - Server validation and registration
+  - Server validation and registration with naming support
   - Client authentication via personal keys
-  - Connection tracking
+  - Connection tracking and analytics
   - Server discovery for clients
   - Geolocation tracking and display
-  - Basic administrative interface
-  - Security monitoring
-  - Server update delivery# 🗓️ **Horizon P2P Network Gateway - MVP Development Roadmap**
+  - Administrative interface with server management
+  - Security monitoring and alerts
+  - Server update delivery
 
-## 🔍 **Component Dependency Map**
-
-1. **Core Dependencies**
-   - Database schema → Broker authentication → Server registration
-   - Server identity → Server registration → Heartbeat system
-   - Client authentication → Server discovery → Connection establishment
-
-2. **Network Dependencies**
-   - QUIC implementation → Connection system → VPN functionality
-   - Virtual network interfaces → Traffic routing → LAN emulation
-   - Client network integration → UI status display
-
-3. **Security Dependencies**
-   - Server verification → Challenge-response system
-   - Client key management → Connection security
-   - Traffic validation → End-to-end encryption
-
-## 🔄 **Critical Path Components**
-
-1. **Broker Foundation**
-   - Database implementation
-   - Authentication system
-   - Server registration
-   - Connection tracking
-
-2. **Server Core**
-   - Identity and registration
-   - QUIC implementation
-   - Network interface
-   - Traffic tunneling
-
-3. **Client Essentials**
-   - Authentication
-   - Server discovery
-   - Connection establishment
-   - Network integration
-   - Basic UI
-
-4. **Security Baseline**
-   - Server verification
-   - Traffic validation
-   - Secure storage
-   - Encrypted communication
-
-5. **Operational Resilience**
-   - Process monitoring
-   - Broker unavailability handling
-   - Connection maintenance
-
-### 📱 **Client Component**
+#### 📱 **Client Component**
 
 - **Language**: Rust
-  - `quinn` (QUIC client implementation)
+  - `webrtc-rs` (WebRTC client implementation)
+  - Optional `quinn` (QUIC client implementation) in later phases
   - `tauri` (cross-platform UI framework)
   - `keyring` (secure key storage)
 - **Key Functionality**:
   - Personal key management
-  - Server discovery via broker with location info
+  - Server discovery via broker with name and location info
   - Direct P2P connection to servers
   - Network service utilization
   - Modern, intuitive UI with real-time status
@@ -139,18 +93,18 @@ The system enables:
 
 1. **Initial Setup**:
    - Administrator generates registration key in broker
-   - Server operator inputs key during setup
+   - Server operator inputs key and server name during setup
    - Server generates encryption keypair
    - Server collects location and hardware identity information
 
 2. **Registration**:
    - Server connects to broker registration endpoint
-   - Server provides registration key, public key, and location data
+   - Server provides registration key, name, public key, and location data
    - Broker validates registration key
    - Broker extracts public IP from connection
    - Broker determines geolocation information
    - Broker generates verification secret
-   - Broker registers server and returns verification secret
+   - Broker registers server with name and returns verification secret
 
 3. **Ongoing Communication**:
    - Server sends heartbeat every 30 seconds
@@ -168,14 +122,15 @@ The system enables:
 
 2. **Server Discovery**:
    - Client requests available server list
-   - Broker returns servers with capabilities and locations
-   - Client displays server locations visually
+   - Broker returns servers with names, capabilities, and locations
+   - Client displays server names and locations visually
    - Client selects appropriate server
 
 3. **Connection Establishment**:
    - Broker records connection intent
-   - Client initiates direct P2P connection to server
+   - Client initiates direct P2P connection to server using WebRTC
    - Server accepts connection if authorized
+   - WebRTC establishes secure data channels
    - Broker updates connection status
    - Client UI shows real-time connection status
 
@@ -183,7 +138,7 @@ The system enables:
    - Server provides network services
    - Client uses VPN/LAN functionality
    - Client displays performance metrics
-   - Both maintain security with keypair encryption
+   - Both maintain security with WebRTC encryption
 
 5. **Connection Termination**:
    - Graceful disconnection process
@@ -224,6 +179,7 @@ The system enables:
 
 - **Initial Registration**:
   - Registration key required for first connection
+  - Server name validation for uniqueness
   - Key becomes bound to server's public key
   - Keys expire after successful registration
 
@@ -262,7 +218,8 @@ The system enables:
 ### Secure Communication
 
 - **Transport Security**:
-  - QUIC protocol with TLS 1.3
+  - WebRTC with DTLS encryption (initial phases)
+  - Optional QUIC protocol with TLS 1.3 (later phases)
   - Certificate verification
   - Connection encryption
   - Keypair encryption/decryption for message security
@@ -283,7 +240,7 @@ The system enables:
   - Input validation
   - Administrative access controls
   - Audit logging
-  - libSQL concurrency benefits for resilience
+  - PostgreSQL security features
 
 - **Server Protection**:
   - Process monitor for automatic recovery
@@ -302,3 +259,34 @@ The system enables:
   - Signed updates with keypair verification
   - Package hash verification
   - Integrity checking during installation
+
+---
+
+## 🗓️ **Development Roadmap**
+
+### Phase 1: Foundation & MVP (Weeks 1-8)
+- Project setup and environment configuration
+- Core broker with PostgreSQL implementation
+- Basic server with WebRTC connectivity
+- Simple client with minimal UI
+- End-to-end connection testing
+
+### Phase 2: Core Functionality (Weeks 9-16)
+- Enhanced broker with admin interface
+- Improved server with better P2P connectivity
+- Enhanced client with better UI
+- Security improvements and testing
+
+### Phase 3: Advanced Features (Weeks 17-24)
+- LAN emulation implementation
+- Advanced broker features with geolocation
+- Optional QUIC protocol transition
+- Production preparation
+
+### Phase 4: Scaling & Refinement (Weeks 25-32)
+- System resilience enhancements
+- Security hardening
+- User experience improvements
+- Final testing and deployment preparation
+
+For detailed roadmaps of each component, see [Detailed Roadmap](./roadmap/roadmap.md).
